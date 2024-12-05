@@ -1,6 +1,6 @@
 // screens/PostsScreen.js
 import React, { useState, useEffect, useContext } from 'react';
-import { View, FlatList, Text, StyleSheet, Alert, Button } from 'react-native';
+import { View, FlatList, Text, StyleSheet, Alert, Button, Share, TouchableOpacity } from 'react-native';
 import { UserContext } from '../UserContext';
 import axios from 'axios';
 
@@ -26,6 +26,16 @@ export default function PostsScreen() {
         fetchFeed();
     }, [username]);
 
+    // same share function from ProfileScreen
+    const handleShare = async (item) => {
+        try {
+            const message = `Check out this post on Bitter from ${item.acc}!\n"${item.post_title}"\n${item.post_desc}`;
+            await Share.share({ message });
+        } catch (error) {
+            Alert.alert('Error', 'something went wrong :(');
+        }
+    };
+
     return (
         <View style={styles.container}>
             <View style={styles.header}>
@@ -35,11 +45,12 @@ export default function PostsScreen() {
                 data={posts}
                 keyExtractor={(item) => item.upid.toString()}
                 renderItem={({ item }) => (
-                    <View style={styles.post}>
+                    // makes the below content clickable and lowers oppacity
+                    <TouchableOpacity style={styles.post} onPress={() => handleShare(item)}> 
                         <Text style={styles.title}>{item.post_title}</Text>
                         <Text>{item.post_desc}</Text>
                         <Text style={styles.username}>Posted by: {item.acc}</Text>
-                    </View>
+                    </TouchableOpacity>
                 )}
                 ListEmptyComponent={<Text>No posts to display.</Text>}
             />
