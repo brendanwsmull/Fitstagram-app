@@ -1,3 +1,4 @@
+// Apps.js
 import React from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -11,6 +12,7 @@ import ProfileScreen from './screens/ProfileScreen';
 const Tab = createBottomTabNavigator();
 const Stack = createStackNavigator();
 
+// this is the main navigation after the log-in screen
 function MainApp() {
     return (
         <Tab.Navigator>
@@ -21,6 +23,7 @@ function MainApp() {
     );
 }
 
+// Uses NavigationContainer to swap from the log-in page to the main navigation and back
 export default function App() {
     return (
         <UserProvider>

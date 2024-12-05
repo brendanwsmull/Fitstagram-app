@@ -1,34 +1,89 @@
 // screens/ProfileScreen.js
-import React, { useContext, useState } from 'react';
-import { View, Text, Button, FlatList, TextInput, StyleSheet, Share } from 'react-native';
+import React, { useContext, useState, useEffect } from 'react';
+import { View, Text, Button, FlatList, TextInput, StyleSheet, Share, Alert } from 'react-native';
 import { UserContext } from '../UserContext';
+import axios from 'axios';
 
-export default function ProfileScreen() {
-    const { username } = useContext(UserContext); // gets the logged-in username
-    const [followUsername, setFollowUsername] = useState(''); // use state for inputting usernames for following
+export default function ProfileScreen({ navigation }) {
+    const { username, setUsername } = useContext(UserContext);
+    const [posts, setPosts] = useState([]);
+    const [followUsername, setFollowUsername] = useState('');
+    const [loading, setLoading] = useState(false);
+    const BASE_URL = 'http://3.144.202.68:5000';
 
-    const posts = [
-        { id: '1', title: 'my own post', description: 'post is being displayed in profile only rn'},
-        { id: '2', title: 'i did it again', description: 'really hoping this works...'},
-    ]; // this is just testing data for right now
+    const fetchPosts = async () => {
+        try {
+            const response = await axios.get(`${BASE_URL}/get_user_posts`, {
+                params: { username },
+            });
+            setPosts(response.data);
+        } catch (error) {
+            Alert.alert('Error', 'Unable to fetch posts.');
+            console.error(error);
+        }
+    };
+
+    // loads the posts when first loading the profile page
+    useEffect(() => {
+        fetchPosts();
+    }, [username]);
+
+    const handleFollow = async () => {
+        // checks to make sure text box is filled
+        if (!followUsername) {
+            Alert.alert('Error', 'Please enter a username to follow.');
+            return;
+        }
+        setLoading(true); // pauses other app functions until loading is done, has a bad glitch when my internet was lagging and things went poof ;(
+        try {
+            const response = await axios.post(`${BASE_URL}/follow_user`, {
+                username,
+                to_follow: followUsername,
+            });
+            Alert.alert('Success', response.data.message);
+            setFollowUsername(''); // clears text box for next use
+        } catch (error) {
+            Alert.alert('Error', 'Unable to follow the user.');
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    // just look at above comments for this method, practically the same
+    const handleUnfollow = async () => {
+        if (!followUsername) {
+            Alert.alert('Error', 'Please enter a username to unfollow.');
+            return;
+        }
+        setLoading(true);
+        try {
+            const response = await axios.post(`${BASE_URL}/unfollow_user`, {
+                username,
+                to_unfollow: followUsername,
+            });
+            Alert.alert('Success', response.data.message);
+            setFollowUsername('');
+        } catch (error) {
+            Alert.alert('Error', 'Unable to unfollow the user.');
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const handleLogout = () => {
+        setUsername(null);
+        navigation.replace('Login');
+    };
 
     const handleShare = async () => {
         try {
             const message = `My name is ${username} on Fitstagram! You should download the app and follow me!`;
             await Share.share({ message });
         } catch (error) {
-            alert('something went wrong :(');
+            Alert.alert('Error', 'something went wrong :(');
         }
-    };
-
-    const handleFollow = () => {
-        alert(`Following ${followUsername}`);
-        setFollowUsername('');
-    };
-
-    const handleUnfollow = () => {
-        alert(`Unfollowed ${followUsername}`);
-        setFollowUsername('');
     };
 
     return (
@@ -38,25 +93,31 @@ export default function ProfileScreen() {
                     style={styles.input}
                     placeholder="Enter username to follow/unfollow"
                     value={followUsername}
-                    onChangeText={setFollowUsername} // Updates followUsername state
+                    onChangeText={setFollowUsername}
                 />
                 <View style={styles.buttonRow}>
-                    <Button title="Follow" onPress={handleFollow} />
-                    <Button title="Unfollow" onPress={handleUnfollow} />
+                    <Button title="Follow" onPress={handleFollow} disabled={loading} />
+                    <Button title="Unfollow" onPress={handleUnfollow} disabled={loading} />
+                    <Button title="Log Out" onPress={handleLogout} />
                 </View>
             </View>
+
             <Text style={styles.username}>Your Username: {username}</Text>
-            <Button title="Share Profile" onPress={handleShare} />
+            <View style={styles.actionRow}>
+                <Button title="Share Profile" onPress={handleShare} />
+                <Button title="Refresh Posts" onPress={fetchPosts} />
+            </View>
             <Text>Your Posts:</Text>
             <FlatList
                 data={posts}
-                keyExtractor={(item) => item.id}
+                keyExtractor={(item) => item.upid.toString()}
                 renderItem={({ item }) => (
                     <View style={styles.post}>
-                        <Text style={styles.title}>{item.title}</Text>
-                        <Text>{item.description}</Text>
+                        <Text style={styles.title}>{item.post_title}</Text>
+                        <Text>{item.post_desc}</Text>
                     </View>
                 )}
+                ListEmptyComponent={<Text>No posts to display.</Text>}
             />
         </View>
     );
@@ -82,5 +143,10 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         marginTop: 10,
         marginBottom: 10,
+    },
+    actionRow: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        marginVertical: 10,
     },
 });
