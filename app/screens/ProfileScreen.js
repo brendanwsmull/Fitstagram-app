@@ -79,7 +79,7 @@ export default function ProfileScreen({ navigation }) {
 
     const handleShare = async () => {
         try {
-            const message = `My name is ${username} on Fitstagram! You should download the app and follow me!`;
+            const message = `My name is ${username} and im feeling kinda Bitter! You should download the app and follow me!`;
             await Share.share({ message });
         } catch (error) {
             Alert.alert('Error', 'something went wrong :(');

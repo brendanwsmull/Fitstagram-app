@@ -1,6 +1,6 @@
 // screens/LoginScreen.js
 import React, { useState, useContext } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, Alert, Image } from 'react-native';
 import axios from 'axios';
 import { UserContext } from '../UserContext';
 
@@ -68,6 +68,7 @@ export default function LoginScreen({ navigation }) {
 
     return (
         <View style={styles.container}>
+            <Image source={require('../assets/bitter.png')} style={styles.logo} />
             <Text style={styles.title}>Login</Text>
             <TextInput
                 placeholder="Username"
@@ -93,7 +94,8 @@ const styles = StyleSheet.create({
         flex: 1, 
         justifyContent: 'center', 
         alignItems: 'center', 
-        padding: 20 
+        padding: 20,
+        backgroundColor: '#FFFFFF'
     },
     input: { 
         borderWidth: 1, 
@@ -106,5 +108,10 @@ const styles = StyleSheet.create({
         fontSize: 24, 
         fontWeight: 'bold', 
         marginBottom: 20 
+    },
+    logo: {
+        width: 150,
+        height: 170,
+        marginBottom: 20,
     },
 });
